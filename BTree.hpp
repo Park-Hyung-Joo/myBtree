@@ -1,19 +1,9 @@
 template <typename _key, typename _value>
 void Btree<_key, _value>::insert(std::pair<_key, _value> input){
-    item *temp = new item;
-    temp->key = input.first;
-    temp->v = input.second;
+    item *temp = new item(input);
     insertion(temp);
 }
-template <typename _key, typename _value>
-void Btree<_key, _value>::insert(std::vector< std::pair<_key, _value> > inputList){
-    for(std::size_t idx = 0; idx < inputList.size(); idx ++){
-        item *temp = new item;
-        temp->key = inputList[idx].first;
-        temp->v = inputList[idx].second;
-        insertion(temp);
-    }
-}
+
 template <typename _key, typename _value>
 bool Btree<_key, _value>::pop(_key target){
     item temp;
@@ -58,8 +48,8 @@ _value* Btree<_key, _value>::search_sub(pnode n,item &k){
     if(!n) return nullptr;
     int i=0;
     for(i;i<n->num;i++){
-        if(k<=n->val[i]){
-            if(k==n->val[i]){
+        if(k<=*(n->val[i])){
+            if(k==*(n->val[i])){
                 return &(n->val[i]->v);
             }
             else{
@@ -84,8 +74,8 @@ void Btree<_key, _value>::search_for_delete(pnode n,item& target){//initial cond
 	}
 	int i=0;
     for(i;i<n->num;i++){
-        if(target<=n->val[i]){
-            if(target==n->val[i]){
+        if(target<=*(n->val[i])){
+            if(target==*(n->val[i])){
                 buffer.target=n;
                 buffer.number=i;
                 return;
@@ -269,7 +259,7 @@ int Btree<_key, _value>::deletion(item& k){
     else if(elementNum==1){//
         int i=0;
         for(i;i<root->num;i++){
-            if(k==root->val[i]){
+            if(k==*(root->val[i])){
                 delete_simple(root,i);
                 if(root->num==0){
                     deleteNode(root);
@@ -427,14 +417,18 @@ template <typename _key, typename _value>
 int Btree<_key, _value>::insertion(item* k){  
 
     if(elementNum==0){
-    	root=new node;
+    	root=new node();
     	root->num++;
     	root->val[0] = k;
     	elementNum++;
+        std::cout<<root->child[0]<<'\n';
+        std::cout<<"make root complete\n";
     	return 0;
 	}
     //find leaf node to insert key
+    std::cout<<"find_seat start\n";
     pnode seat = find_seat(root,k);
+    std::cout<<"find_seat complete\n";
 	if (!seat){ 
     	//find_seat return NULL when same key already exist
         printf("That key already exist.\n");
@@ -447,7 +441,7 @@ int Btree<_key, _value>::insertion(item* k){
         case 0:// (only root exsit and it is empty)
         	seat->val[0] = k;
         case 1://loop invariant: seat->val[0] is not empty
-            if (*(seat->val[0]) < k){
+            if (*(seat->val[0]) < *k){
                 seat->val[1] = k;
             }
             else{
@@ -456,13 +450,13 @@ int Btree<_key, _value>::insertion(item* k){
             }
             break;
         case 2://loop invariant: seat->val[0],[1] are not empty
-            if (k < seat->val[0]) {
+            if (*k < *(seat->val[0])) {
                 seat->val[2] = seat->val[1];
                 seat->val[1] = seat->val[0];
                 seat->val[0] = k;
  
             }
-            else if(k < seat->val[1]){
+            else if(*k < *(seat->val[1])){
                 seat->val[2] = seat->val[1];
                 seat->val[1] = k;
             }
@@ -477,16 +471,16 @@ int Btree<_key, _value>::insertion(item* k){
     
     else{  //case: leaf node is already full => need propagation
         item* popped = new item;
-        if (k < seat->val[0]){
+        if (*k < *(seat->val[0])){
             
             popped = seat->val[1];
             seat->val[1] = seat->val[0];
             seat->val[0] = k;
-        }else if(k < seat->val[1]){
+        }else if(*k < *(seat->val[1])){
             
             popped = seat->val[1];
             seat->val[1] = k;
-        }else if (k < seat->val[2]){
+        }else if (*k < *(seat->val[2])){
             
             popped = k;
         }else{
@@ -515,15 +509,15 @@ template <typename _key, typename _value>
     int i;
     if(isTerminal(n)) {
     	for(i=0;i<n->num;i++){
-    		if(k==n->val[i]) return NULL;
+    		if(*k==*(n->val[i])) return nullptr;
 		}
         return n;
-    }    
-    for(i=0;i<n->num;i++){
-        if(k==n->val[i]) return NULL;
     }
     for(i=0;i<n->num;i++){
-    	if (k < (n->val[i])){
+        if(*k==*(n->val[i])) return nullptr;
+    }
+    for(i=0;i<n->num;i++){
+    	if (*k < *(n->val[i])){
         	return find_seat(n->child[i], k);	
     	}	
 	}
@@ -560,7 +554,7 @@ int Btree<_key, _value>::propagation(pnode getLeft, pnode getRight, pnode target
         newRight->num = 1;
         newRight->parent= target->parent;
         
-        if (*popped < target->val[0]){
+        if (*popped < *(target->val[0])){
             // k < val[0] < val[1] < val[2]
             
             new_popped = target->val[1];
@@ -578,7 +572,7 @@ int Btree<_key, _value>::propagation(pnode getLeft, pnode getRight, pnode target
             target->val[2]=nullptr;
 
         }
-		else if(*popped < target->val[1]){
+		else if(*popped < *(target->val[1])){
             new_popped = target->val[1];
             
             newRight->val[0]=target->val[2];
@@ -592,7 +586,7 @@ int Btree<_key, _value>::propagation(pnode getLeft, pnode getRight, pnode target
             target->val[2]=nullptr;
             
         }
-		else if (*popped < target->val[2]){
+		else if (*popped < *(target->val[2])){
             new_popped = popped;
             target->child[2] = getLeft;
             
@@ -628,7 +622,7 @@ int Btree<_key, _value>::insert_as_smaller_than_2(pnode target,item* k, pnode ge
             target->child[1] = getRight;
             break;
         case 1://loop invariant: target->val[0] is not empty
-            if (*(target->val[0]) < k){
+            if (*(target->val[0]) < *k){
                 // p :  llp l   lp  m   rp  r   rrp
                 //      llp l   gL  k   gR
                 target->val[1] = k;
@@ -644,7 +638,7 @@ int Btree<_key, _value>::insert_as_smaller_than_2(pnode target,item* k, pnode ge
             }
             break;
         case 2://loop invariant: target->val[0],[1] are not empty
-            if (*k < target->val[0]) {
+            if (*k < *(target->val[0])) {
                 target->val[2] = target->val[1];
                 target->val[1] = target->val[0];
                 target->val[0] = k;
@@ -655,7 +649,7 @@ int Btree<_key, _value>::insert_as_smaller_than_2(pnode target,item* k, pnode ge
                 target->child[0] = getLeft;
  
             }
-            else if(*k < target->val[1]){
+            else if(*k < *(target->val[1])){
                 target->val[2] = target->val[1];
                 target->val[1] = k;
                 

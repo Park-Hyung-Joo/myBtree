@@ -1,3 +1,5 @@
+#ifndef BTREE_H
+#define BTREE_H
 #include "node.h"
 #include <queue>
 #include <stdio.h>
@@ -16,13 +18,13 @@ class Btree{
     pos buffer;
     pnode root;
     void deleteNode(pnode p){
-        if (p!=NULL){
+        if (p!=nullptr){
             delete p;
-            p = NULL;
+            p = nullptr;
         }
     }
     bool isTerminal(pnode givenNode){
-        if (givenNode==NULL||givenNode->child[0]==NULL){
+        if (givenNode==nullptr||givenNode->child[0]==nullptr){
             return true;
         }
         return false;
@@ -50,14 +52,13 @@ class Btree{
     int propagation_delete(pnode targetNode);
     void delete_simple(pnode targetLeaf,int targetNumber);
     public:
-    Btree(){root = NULL; elementNum = 0;}
+    Btree(){root = nullptr; elementNum = 0;}
     ~Btree(){
         while(elementNum > 0){
             deletion(*(root->val[0]));
         }
     }
     void insert(std::pair<_key, _value> input);
-    void insert(std::vector< std::pair<_key, _value> > inputList);
     bool pop(_key target);
     bool empty();
     int size();
@@ -65,3 +66,4 @@ class Btree{
     _value* find(_key k);
 };
 #include "BTree.hpp"
+#endif
