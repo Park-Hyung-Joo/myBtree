@@ -422,13 +422,10 @@ int Btree<_key, _value>::insertion(item* k){
     	root->val[0] = k;
     	elementNum++;
         std::cout<<root->child[0]<<'\n';
-        std::cout<<"make root complete\n";
     	return 0;
 	}
     //find leaf node to insert key
-    std::cout<<"find_seat start\n";
     pnode seat = find_seat(root,k);
-    std::cout<<"find_seat complete\n";
 	if (!seat){ 
     	//find_seat return NULL when same key already exist
         printf("That key already exist.\n");
